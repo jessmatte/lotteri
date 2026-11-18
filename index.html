@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vinlotteri</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <!-- Tailwind Custom Theme Configuration -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              red: '#EF4444',
+              blue: '#2563EB',
+              yellow: '#FACC15',
+              emerald: '#10B981',
+              surface: '#FFFFFF',
+              bg: '#F8FAFC',
+              ink: '#0F172A',
+            },
+          },
+          fontFamily: {
+            display: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+            sans: ['Inter', '"Plus Jakarta Sans"', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            'wheel': '0 22px 50px -12px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(15, 23, 42, 0.06)',
+            'card': '0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 1px 3px 0 rgba(15, 23, 42, 0.04)',
+            'hub': '0 10px 25px -5px rgba(15, 23, 42, 0.35), 0 0 0 4px #FFFFFF',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #F8FAFC;
+      background-image:
+        radial-gradient(circle at 15% 15%, rgba(37, 99, 235, 0.05) 0%, transparent 45%),
+        radial-gradient(circle at 85% 20%, rgba(250, 204, 21, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 50% 90%, rgba(239, 68, 68, 0.05) 0%, transparent 50%);
+      color: #0F172A;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, .font-display {
+      font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif;
+    }
+
+    /* Custom subtle scrollbar */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
+    /* Gentle float animation for winner icon */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(-2deg); }
+      50% { transform: translateY(-6px) rotate(3deg); }
+    }
+    .animate-float {
+      animation: floatSlow 2.6s ease-in-out infinite;
+    }
+
+    /* Modal entrance transition */
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.93) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-pop-in {
+      animation: popIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* Modern Primary Checkbox */
+    .modern-checkbox {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 1.25rem;
+      height: 1.25rem;
+      border-radius: 0.375rem;
+      border: 2px solid #CBD5E1;
+      background-color: #FFFFFF;
+      cursor: pointer;
+      display: inline-grid;
+      place-content: center;
+      transition: all 0.15s ease;
+      flex-shrink: 0;
+    }
+    .modern-checkbox:hover {
+      border-color: #2563EB;
+    }
+    .modern-checkbox:checked {
+      background-color: #2563EB;
+      border-color: #2563EB;
+    }
+    .modern-checkbox:checked::before {
+      content: "";
+      width: 0.65rem;
+      height: 0.65rem;
+      clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
+      background-color: #FFFFFF;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col selection:bg-brand-yellow selection:text-brand-ink">
+
+  <!-- ==================== MODERN PRIMARY HEADER ==================== -->
+  <header class="bg-white/95 backdrop-blur-md border-b border-slate-200/80 sticky top-0 z-30">
+    <!-- Subtle Primary Accent Top Strip -->
+    <div class="h-1.5 w-full flex">
+      <div class="flex-1 bg-brand-red"></div>
+      <div class="flex-1 bg-brand-yellow"></div>
+      <div class="flex-1 bg-brand-blue"></div>
+      <div class="flex-1 bg-brand-emerald"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between gap-3">
+      <!-- Brand Title & Modern Wine/Lottery Icon (No subtitle) -->
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-brand-blue text-white flex items-center justify-center shadow-sm flex-shrink-0">
+          <!-- Modern Wine Glass & Spark Icon -->
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 22h8" />
+            <path d="M12 15v7" />
+            <path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z" />
+            <path d="M7.3 9h9.4" />
+          </svg>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">
+          Vinlotteri
+        </h1>
+      </div>
+
+      <!-- Header Actions: Audio Toggle & New Round Pill Buttons -->
+      <div class="flex items-center gap-2 sm:gap-2.5">
+        <button
+          id="muteToggleBtn"
+          type="button"
+          aria-label="Växla ljud"
+          class="inline-flex items-center gap-2 px-3.5 py-2 rounded-full text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200/80 text-slate-800 border border-slate-200/80 transition cursor-pointer active:scale-[0.98]"
+        >
+          <!-- Sound On Icon -->
+          <svg id="soundOnIcon" class="w-4 h-4 text-brand-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+          </svg>
+          <!-- Sound Off Icon -->
+          <svg id="soundOffIcon" class="w-4 h-4 text-brand-red hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+            <line x1="23" y1="9" x2="17" y2="15" />
+            <line x1="17" y1="9" x2="23" y2="15" />
+          </svg>
+          <span id="muteLabel">Ljud på</span>
+        </button>
+
+        <button
+          id="newRoundBtn"
+          type="button"
+          class="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs sm:text-sm font-semibold bg-white hover:bg-red-50 text-brand-red border border-red-200 transition cursor-pointer active:scale-[0.98]"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+            <path d="M3 3v5h5" />
+          </svg>
+          <span>Ny omgång</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Inline Non-Blocking Confirmation Bar for "Ny omgång" -->
+    <div
+      id="newRoundConfirmBar"
+      class="hidden bg-slate-900 text-white border-t border-slate-800"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2.5 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
+        <span class="font-medium text-slate-100">
+          Vill du starta en ny omgång och lägga tillbaka alla vinnare på hjulet?
+        </span>
+        <div class="flex items-center gap-2">
+          <button
+            id="confirmNewRoundBtn"
+            type="button"
+            class="px-3.5 py-1.5 rounded-full bg-brand-yellow hover:bg-yellow-300 text-slate-900 font-bold transition cursor-pointer"
+          >
+            Ja, starta ny omgång
+          </button>
+          <button
+            id="cancelNewRoundBtn"
+            type="button"
+            class="px-3 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium transition cursor-pointer"
+          >
+            Avbryt
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN TWO-COLUMN WORKSPACE ==================== -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
+
+      <!-- LEFT STAGE: SPINNING WHEEL & CONTROLS (7 cols on lg) -->
+      <section class="lg:col-span-7 flex flex-col items-center">
+        <!-- Next Bottle & Live Status Card -->
+        <div class="w-full max-w-xl mb-4 bg-white border border-slate-200/90 rounded-2xl px-4 py-3 shadow-card flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-3">
+            <span class="inline-flex items-center justify-center px-3 py-1 rounded-xl bg-brand-yellow text-slate-900 font-display font-extrabold text-sm shadow-2xs">
+              Flaska #<span id="nextBottleNumber">1</span>
+            </span>
+            <span id="wheelStatusText" class="text-sm font-semibold text-slate-700">
+              Redo att snurra
+            </span>
+          </div>
+
+          <button
+            id="quickResetEmptyBtn"
+            type="button"
+            class="hidden px-3 py-1 rounded-full text-xs font-bold bg-brand-blue text-white hover:bg-blue-700 transition cursor-pointer"
+          >
+            Ny omgång
+          </button>
+        </div>
+
+        <!-- Wheel Container -->
+        <div class="relative w-full max-w-[530px] aspect-square flex items-center justify-center my-1 select-none">
+          <!-- Soft Primary Ambient Glow -->
+          <div class="absolute inset-6 rounded-full bg-gradient-to-tr from-brand-blue/15 via-brand-yellow/20 to-brand-red/15 blur-2xl pointer-events-none"></div>
+
+          <!-- High-DPI HTML5 Canvas -->
+          <canvas
+            id="wheelCanvas"
+            class="w-full h-full rounded-full cursor-pointer transition-transform duration-150"
+            aria-label="Vinlotteri snurrhjul"
+          ></canvas>
+
+          <!-- Center Hub Button ("SNURRA") -->
+          <button
+            id="centerSpinBtn"
+            type="button"
+            aria-label="Snurra hjulet"
+            class="absolute z-10 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-hub flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            <span class="font-display font-extrabold text-sm sm:text-base tracking-wider text-white">
+              SNURRA
+            </span>
+          </button>
+        </div>
+
+        <!-- Primary Spin CTA & Keyboard Shortcut Hint -->
+        <div class="mt-4 flex flex-col items-center gap-2 w-full max-w-md">
+          <button
+            id="primarySpinBtn"
+            type="button"
+            class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-brand-red hover:bg-red-600 text-white font-display font-extrabold text-base tracking-wide shadow-lg shadow-red-500/25 transition transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2.5"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+              <path d="M21 3v5h-5" />
+            </svg>
+            <span id="primarySpinBtnText">Snurra för Flaska #1</span>
+          </button>
+
+          <p class="text-xs text-slate-500 text-center">
+            Tips: Tryck på <kbd class="px-1.5 py-0.5 text-[11px] font-semibold bg-white border border-slate-300 rounded text-slate-700">Mellanslag</kbd> eller klicka på hjulet
+          </p>
+        </div>
+      </section>
+
+      <!-- RIGHT SIDEBAR: CASUAL ROSTER & WINNERS (5 cols on lg) -->
+      <aside class="lg:col-span-5 flex flex-col gap-6">
+
+        <!-- CARD 1: "VILKA ÄR MED?" -->
+        <div class="bg-white border border-slate-200/90 rounded-2xl shadow-card overflow-hidden">
+          <!-- Card Header -->
+          <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between gap-2">
+            <div>
+              <h2 class="text-lg font-extrabold text-slate-900">
+                Vilka är med?
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Bocka av de som inte är på plats
+              </p>
+            </div>
+
+            <span
+              id="rosterCounterPill"
+              class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-brand-blue border border-blue-200/80 whitespace-nowrap"
+            >
+              12 av 12 med
+            </span>
+          </div>
+
+          <!-- Inline Add & Load List Controls -->
+          <div class="p-4 bg-slate-50/80 border-b border-slate-100 space-y-2.5">
+            <form id="quickAddForm" class="flex gap-2">
+              <input
+                id="quickAddInput"
+                type="text"
+                placeholder="Lägg till förnamn..."
+                maxlength="30"
+                class="flex-1 min-w-0 px-3.5 py-2 text-sm bg-white border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-blue focus:border-transparent placeholder:text-slate-400"
+              />
+              <button
+                type="submit"
+                class="px-4 py-2 rounded-xl bg-brand-blue hover:bg-blue-700 text-white text-sm font-semibold transition cursor-pointer active:scale-95 whitespace-nowrap"
+              >
+                Lägg till
+              </button>
+            </form>
+
+            <div class="flex items-center justify-between gap-2">
+              <button
+                id="openLoadModalBtn"
+                type="button"
+                class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition cursor-pointer"
+              >
+                <svg class="w-3.5 h-3.5 text-brand-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                </svg>
+                <span>Ladda lista</span>
+              </button>
+
+              <div class="flex items-center gap-2 text-xs font-semibold">
+                <button
+                  id="markAllHereBtn"
+                  type="button"
+                  class="text-brand-blue hover:underline cursor-pointer"
+                >
+                  Alla med
+                </button>
+                <span class="text-slate-300">·</span>
+                <button
+                  id="markAllAwayBtn"
+                  type="button"
+                  class="text-slate-500 hover:text-slate-800 hover:underline cursor-pointer"
+                >
+                  Bocka av alla
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Participant Checklist -->
+          <div
+            id="rosterListContainer"
+            class="max-h-[320px] overflow-y-auto custom-scrollbar divide-y divide-slate-100 px-2 py-1.5"
+          >
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- CARD 2: "VINNARE" -->
+        <div class="bg-white border border-slate-200/90 rounded-2xl shadow-card overflow-hidden">
+          <div class="px-5 py-3.5 border-b border-slate-100 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-brand-yellow ring-4 ring-yellow-100"></span>
+              <h2 class="text-lg font-extrabold text-slate-900">
+                Vinnare
+              </h2>
+            </div>
+            <span
+              id="winnersCountBadge"
+              class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600"
+            >
+              0 st
+            </span>
+          </div>
+
+          <div
+            id="winnersListContainer"
+            class="max-h-[250px] overflow-y-auto custom-scrollbar p-4"
+          >
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+      </aside>
+    </div>
+  </main>
+
+  <!-- ==================== WINNER CELEBRATION MODAL ==================== -->
+  <div
+    id="winnerModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="winnerHeading"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/65 backdrop-blur-xs"
+  >
+    <div class="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-pop-in">
+      <!-- Top Primary Color Bar -->
+      <div class="h-2 w-full flex">
+        <div class="flex-1 bg-brand-red"></div>
+        <div class="flex-1 bg-brand-yellow"></div>
+        <div class="flex-1 bg-brand-blue"></div>
+        <div class="flex-1 bg-brand-emerald"></div>
+      </div>
+
+      <div class="p-7 text-center">
+        <!-- Bottle Badge -->
+        <div class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-brand-yellow text-slate-900 font-display font-extrabold text-xs uppercase tracking-wider mb-4 shadow-2xs">
+          <span>Flaska #<span id="modalBottleNumber">1</span></span>
+        </div>
+
+        <!-- Festive Wine Glass Icon -->
+        <div class="mx-auto w-16 h-16 rounded-2xl bg-red-50 border border-red-100 text-brand-red flex items-center justify-center mb-4 animate-float">
+          <svg class="w-9 h-9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M8 22h8" />
+            <path d="M12 15v7" />
+            <path d="M12 15a5 5 0 0 0 5-5c0-2-.5-4-2-8H9c-1.5 4-2 6-2 8a5 5 0 0 0 5 5Z" />
+            <path d="M7.3 9h9.4" fill="currentColor" />
+          </svg>
+        </div>
+
+        <!-- Big Celebratory Heading -->
+        <h3
+          id="winnerHeading"
+          class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight break-words mb-2"
+        >
+          Grattis, <span id="modalWinnerName" class="text-brand-blue">Erik</span>!
+        </h3>
+
+        <p class="text-sm text-slate-500 mb-6">
+          Vinnaren tas automatiskt bort från hjulet inför nästa dragning.
+        </p>
+
+        <!-- Primary Action Button: "Nästa snurr" -->
+        <button
+          id="nextSpinBtn"
+          type="button"
+          class="w-full py-3.5 px-6 rounded-2xl bg-brand-blue hover:bg-blue-700 text-white font-display font-extrabold text-base shadow-lg shadow-blue-600/25 transition cursor-pointer active:scale-[0.99]"
+        >
+          Nästa snurr
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== LOAD NAME LIST MODAL ("Ladda namnlista") ==================== -->
+  <div
+    id="loadListModal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="loadModalTitle"
+    class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-slate-900/65 backdrop-blur-xs"
+  >
+    <div class="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-pop-in">
+      <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+        <h3 id="loadModalTitle" class="text-lg font-extrabold text-slate-900">
+          Ladda namnlista
+        </h3>
+        <button
+          id="closeLoadModalX"
+          type="button"
+          aria-label="Stäng"
+          class="w-8 h-8 rounded-full hover:bg-slate-100 text-slate-500 hover:text-slate-800 flex items-center justify-center transition cursor-pointer"
+        >
+          ✕
+        </button>
+      </div>
+
+      <div class="p-6 space-y-4">
+        <p class="text-xs text-slate-500">
+          Klistra in namn (ett per rad eller separerade med kommatecken). Endast förnamn används på hjulet.
+        </p>
+
+        <textarea
+          id="bulkNamesTextarea"
+          rows="7"
+          placeholder="Erik&#10;Maja&#10;Johan&#10;Astrid..."
+          class="w-full p-3.5 text-sm bg-slate-50 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-blue focus:bg-white transition leading-relaxed"
+        ></textarea>
+
+        <p id="loadModalError" class="hidden text-xs font-semibold text-brand-red bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+          Skriv eller klistra in minst ett namn innan du sparar.
+        </p>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+          <button
+            id="clearTextareaBtn"
+            type="button"
+            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-brand-red hover:bg-red-50 transition cursor-pointer"
+          >
+            Rensa
+          </button>
+
+          <div class="flex items-center gap-2">
+            <button
+              id="cancelLoadModalBtn"
+              type="button"
+              class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+            >
+              Avbryt
+            </button>
+            <button
+              id="saveListBtn"
+              type="button"
+              class="px-5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-brand-blue hover:bg-blue-700 text-white shadow-sm transition cursor-pointer"
+            >
+              Spara lista
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== APPLICATION LOGIC ==================== -->
+  <script>
+    (() => {
+      'use strict';
+
+      /* ------------------------------------------------------------------
+       * 1. CONSTANTS & DEFAULT SWEDISH FIRST NAMES
+       * ------------------------------------------------------------------ */
+      const STORAGE_KEY = 'vinlotteri_modern_sv_v1';
+
+      const DEFAULT_FIRST_NAMES = [
+        'Erik',
+        'Maja',
+        'Johan',
+        'Astrid',
+        'Lukas',
+        'Elsa',
+        'Oscar',
+        'Freja',
+        'Viktor',
+        'Alva',
+        'Hugo',
+        'Ella',
+      ];
+
+      // Vibrant Primary Segment Palette with high-contrast text colors
+      const WHEEL_COLORS = [
+        { bg: '#EF4444', text: '#FFFFFF' }, // Red
+        { bg: '#2563EB', text: '#FFFFFF' }, // Royal Blue
+        { bg: '#FACC15', text: '#0F172A' }, // Sunny Yellow (deep slate text)
+        { bg: '#10B981', text: '#FFFFFF' }, // Emerald Green
+      ];
+
+      /* ------------------------------------------------------------------
+       * 2. WEB AUDIO API SOUND SYNTHESIZER
+       * ------------------------------------------------------------------ */
+      class SoundEngine {
+        constructor() {
+          this.ctx = null;
+          this.muted = false;
+        }
+
+        ensureContext() {
+          if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+              this.ctx = new AudioCtx();
+            }
+          }
+          if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+          }
+        }
+
+        setMuted(muted) {
+          this.muted = Boolean(muted);
+        }
+
+        /**
+         * Crisp mechanical peg click as each slice passes the 12 o'clock pointer.
+         */
+        playTick(speedNorm = 0.5) {
+          if (this.muted) return;
+          try {
+            this.ensureContext();
+            if (!this.ctx) return;
+
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+
+            const freq = 580 + Math.min(1, Math.max(0, speedNorm)) * 280;
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(freq, now);
+            osc.frequency.exponentialRampToValueAtTime(160, now + 0.03);
+
+            const peak = 0.12 + Math.min(1, speedNorm) * 0.08;
+            gain.gain.setValueAtTime(0.001, now);
+            gain.gain.linearRampToValueAtTime(peak, now + 0.003);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.034);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.038);
+          } catch (e) {
+            // Ignore audio playback errors if restricted
+          }
+        }
+
+        /**
+         * Bright celebratory chime fanfare when landing on a winner.
+         */
+        playWinChime() {
+          if (this.muted) return;
+          try {
+            this.ensureContext();
+            if (!this.ctx) return;
+
+            const now = this.ctx.currentTime;
+            const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+
+            notes.forEach((freq, i) => {
+              const start = now + i * 0.075;
+              const duration = 0.85 - i * 0.06;
+
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, start);
+
+              gain.gain.setValueAtTime(0.0001, start);
+              gain.gain.linearRampToValueAtTime(0.15, start + 0.02);
+              gain.gain.exponentialRampToValueAtTime(0.0008, start + duration);
+
+              osc.connect(gain);
+              gain.connect(this.ctx.destination);
+
+              osc.start(start);
+              osc.stop(start + duration + 0.04);
+            });
+          } catch (e) {
+            // Ignore audio playback errors if restricted
+          }
+        }
+      }
+
+      /* ------------------------------------------------------------------
+       * 3. FIRST-NAME EXTRACTION & PERSISTENCE
+       * ------------------------------------------------------------------ */
+      const sound = new SoundEngine();
+
+      let state = {
+        participants: [], // { id, name, present, won, bottleNumber }
+        muted: false,
+      };
+
+      const wheel = {
+        rotation: 0,
+        angularVelocity: 0,
+        isSpinning: false,
+        lastFrameTime: 0,
+        lastPegIndex: -1,
+        flapperAngle: 0,
+        highlightedWinnerId: null,
+        pendingWinner: null,
+      };
+
+      function generateId() {
+        return 'id_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
+      }
+
+      /**
+       * Extracts only the first name from any pasted or typed entry.
+       * Example: "  1. Erik Lindqvist  " -> "Erik"
+       */
+      function extractFirstName(raw) {
+        if (!raw) return '';
+        const cleaned = String(raw)
+          .replace(/^[\s\-*•\d.)]+/, '')
+          .trim();
+        if (!cleaned) return '';
+        const firstToken = cleaned.split(/\s+/)[0];
+        return firstToken.charAt(0).toUpperCase() + firstToken.slice(1);
+      }
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (err) {
+          console.warn('Kunde inte spara till localStorage:', err);
+        }
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && Array.isArray(parsed.participants)) {
+              state.participants = parsed.participants
+                .map((p) => ({
+                  id: p.id || generateId(),
+                  name: extractFirstName(p.name),
+                  present: Boolean(p.present),
+                  won: Boolean(p.won),
+                  bottleNumber: p.won ? Number(p.bottleNumber) || 1 : null,
+                }))
+                .filter((p) => p.name.length > 0);
+              state.muted = Boolean(parsed.muted);
+              sound.setMuted(state.muted);
+              return;
+            }
+          }
+        } catch (err) {
+          console.warn('Kunde inte läsa sparad data:', err);
+        }
+
+        // First visit: populate default 12 Swedish first names
+        state.participants = DEFAULT_FIRST_NAMES.map((name) => ({
+          id: generateId(),
+          name,
+          present: true,
+          won: false,
+          bottleNumber: null,
+        }));
+        state.muted = false;
+        saveState();
+      }
+
+      /* ------------------------------------------------------------------
+       * 4. SELECTORS
+       * ------------------------------------------------------------------ */
+      function getActiveOnWheel() {
+        return state.participants.filter((p) => p.present && !p.won);
+      }
+
+      function getEligiblePool() {
+        // Total non-won colleagues for "X av Y med" counter
+        return state.participants.filter((p) => !p.won);
+      }
+
+      function getWinnersSorted() {
+        return state.participants
+          .filter((p) => p.won)
+          .sort((a, b) => (a.bottleNumber || 0) - (b.bottleNumber || 0));
+      }
+
+      function getNextBottleNumber() {
+        const winners = getWinnersSorted();
+        if (winners.length === 0) return 1;
+        return Math.max(...winners.map((w) => w.bottleNumber || 0)) + 1;
+      }
+
+      /* ------------------------------------------------------------------
+       * 5. DOM REFERENCES
+       * ------------------------------------------------------------------ */
+      const dom = {
+        canvas: document.getElementById('wheelCanvas'),
+        centerSpinBtn: document.getElementById('centerSpinBtn'),
+        primarySpinBtn: document.getElementById('primarySpinBtn'),
+        primarySpinBtnText: document.getElementById('primarySpinBtnText'),
+        nextBottleNumber: document.getElementById('nextBottleNumber'),
+        wheelStatusText: document.getElementById('wheelStatusText'),
+        quickResetEmptyBtn: document.getElementById('quickResetEmptyBtn'),
+
+        muteToggleBtn: document.getElementById('muteToggleBtn'),
+        soundOnIcon: document.getElementById('soundOnIcon'),
+        soundOffIcon: document.getElementById('soundOffIcon'),
+        muteLabel: document.getElementById('muteLabel'),
+
+        newRoundBtn: document.getElementById('newRoundBtn'),
+        newRoundConfirmBar: document.getElementById('newRoundConfirmBar'),
+        confirmNewRoundBtn: document.getElementById('confirmNewRoundBtn'),
+        cancelNewRoundBtn: document.getElementById('cancelNewRoundBtn'),
+
+        rosterCounterPill: document.getElementById('rosterCounterPill'),
+        quickAddForm: document.getElementById('quickAddForm'),
+        quickAddInput: document.getElementById('quickAddInput'),
+        openLoadModalBtn: document.getElementById('openLoadModalBtn'),
+        markAllHereBtn: document.getElementById('markAllHereBtn'),
+        markAllAwayBtn: document.getElementById('markAllAwayBtn'),
+        rosterListContainer: document.getElementById('rosterListContainer'),
+
+        winnersCountBadge: document.getElementById('winnersCountBadge'),
+        winnersListContainer: document.getElementById('winnersListContainer'),
+
+        winnerModal: document.getElementById('winnerModal'),
+        modalBottleNumber: document.getElementById('modalBottleNumber'),
+        modalWinnerName: document.getElementById('modalWinnerName'),
+        nextSpinBtn: document.getElementById('nextSpinBtn'),
+
+        loadListModal: document.getElementById('loadListModal'),
+        closeLoadModalX: document.getElementById('closeLoadModalX'),
+        bulkNamesTextarea: document.getElementById('bulkNamesTextarea'),
+        loadModalError: document.getElementById('loadModalError'),
+        clearTextareaBtn: document.getElementById('clearTextareaBtn'),
+        cancelLoadModalBtn: document.getElementById('cancelLoadModalBtn'),
+        saveListBtn: document.getElementById('saveListBtn'),
+      };
+
+      const ctx = dom.canvas.getContext('2d');
+
+      /* ------------------------------------------------------------------
+       * 6. HIGH-DPI CANVAS WHEEL RENDERER & PHYSICS
+       * ------------------------------------------------------------------ */
+      function resizeCanvas() {
+        const container = dom.canvas.parentElement;
+        if (!container) return;
+        const size = container.clientWidth;
+        const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+        dom.canvas.width = size * dpr;
+        dom.canvas.height = size * dpr;
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        drawWheel();
+      }
+
+      /**
+       * Ensures adjacent wheel slices never share the same primary color, including wrap-around.
+       */
+      function getSegmentColor(index, total) {
+        const len = WHEEL_COLORS.length;
+        if (total > 1 && index === total - 1 && index % len === 0) {
+          return WHEEL_COLORS[1]; // Royal Blue instead of Red so it doesn't touch slice 0
+        }
+        return WHEEL_COLORS[index % len];
+      }
+
+      function drawWheel() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+        const width = dom.canvas.width / dpr;
+        const height = dom.canvas.height / dpr;
+        if (width <= 0 || height <= 0) return;
+
+        const cx = width / 2;
+        const cy = height / 2;
+        const outerRimRadius = Math.min(cx, cy) - 10;
+        const wheelRadius = outerRimRadius - 14;
+
+        ctx.clearRect(0, 0, width, height);
+
+        // 1. Crisp Modern White Outer Rim with Elevation Shadow
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerRimRadius, 0, Math.PI * 2);
+        ctx.shadowColor = 'rgba(15, 23, 42, 0.16)';
+        ctx.shadowBlur = 22;
+        ctx.shadowOffsetY = 8;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fill();
+        ctx.restore();
+
+        // Outer rim border stroke
+        ctx.beginPath();
+        ctx.arc(cx, cy, outerRimRadius, 0, Math.PI * 2);
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#E2E8F0';
+        ctx.stroke();
+
+        const active = getActiveOnWheel();
+        const count = active.length;
+
+        // 2. Empty State (< 1 active)
+        if (count === 0) {
+          ctx.beginPath();
+          ctx.arc(cx, cy, wheelRadius, 0, Math.PI * 2);
+          ctx.fillStyle = '#F1F5F9';
+          ctx.fill();
+
+          ctx.fillStyle = '#0F172A';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.font = '700 17px "Plus Jakarta Sans", Inter, sans-serif';
+          ctx.fillText('Inga deltagare på hjulet', cx, cy - 66);
+
+          ctx.fillStyle = '#64748B';
+          ctx.font = '500 13px Inter, sans-serif';
+          ctx.fillText('Bocka i deltagare eller starta ny omgång', cx, cy + 66);
+
+          drawTopPointer(cx, cy, outerRimRadius, 0);
+          return;
+        }
+
+        // 3. Draw Vibrant Primary Segments
+        const sliceAngle = (Math.PI * 2) / count;
+
+        for (let i = 0; i < count; i++) {
+          const person = active[i];
+          const startAngle = wheel.rotation + i * sliceAngle;
+          const endAngle = startAngle + sliceAngle;
+          const midAngle = startAngle + sliceAngle / 2;
+          const color = getSegmentColor(i, count);
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, wheelRadius, startAngle, endAngle);
+          ctx.closePath();
+
+          ctx.fillStyle = color.bg;
+          ctx.fill();
+
+          // Clean white divider lines between segments
+          if (count > 1) {
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.lineWidth = count > 20 ? 1.5 : 2.5;
+            ctx.stroke();
+          }
+          ctx.restore();
+
+          // 4. Radial First-Name Labels
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(midAngle);
+
+          const hubClearance = Math.max(54, wheelRadius * 0.25);
+          const outerPadding = 22;
+          const maxTextWidth = Math.max(44, wheelRadius - hubClearance - outerPadding);
+
+          const arcHeight = (wheelRadius * 0.65) * sliceAngle;
+          const fontSize = Math.max(
+            11,
+            Math.min(19, arcHeight * 0.56, wheelRadius * 0.088)
+          );
+
+          ctx.font = `700 ${fontSize.toFixed(1)}px "Plus Jakarta Sans", Inter, sans-serif`;
+          ctx.fillStyle = color.text;
+          ctx.textAlign = 'right';
+          ctx.textBaseline = 'middle';
+
+          let label = person.name;
+          if (ctx.measureText(label).width > maxTextWidth) {
+            while (label.length > 2 && ctx.measureText(label + '…').width > maxTextWidth) {
+              label = label.slice(0, -1);
+            }
+            label += '…';
+          }
+
+          if (count === 1) {
+            ctx.rotate(-midAngle);
+            ctx.textAlign = 'center';
+            ctx.font = '800 22px "Plus Jakarta Sans", Inter, sans-serif';
+            ctx.fillText(person.name, 0, -wheelRadius * 0.55);
+            ctx.font = '600 12px Inter, sans-serif';
+            ctx.fillText('Minst 2 personer behövs för att snurra', 0, wheelRadius * 0.55);
+          } else {
+            ctx.fillText(label, wheelRadius - outerPadding, 0);
+          }
+
+          ctx.restore();
+        }
+
+        // Inner crisp border ring
+        ctx.beginPath();
+        ctx.arc(cx, cy, wheelRadius, 0, Math.PI * 2);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#E2E8F0';
+        ctx.stroke();
+
+        // 5. Perimeter Pegs on the White Rim
+        const pegRadius = wheelRadius + 7;
+        for (let i = 0; i < count; i++) {
+          const pegAngle = wheel.rotation + i * sliceAngle;
+          const px = cx + Math.cos(pegAngle) * pegRadius;
+          const py = cy + Math.sin(pegAngle) * pegRadius;
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(px, py, count > 24 ? 2.5 : 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = '#0F172A';
+          ctx.fill();
+          ctx.restore();
+        }
+
+        // 6. Spring-Loaded Top Pointer at 12 o'clock
+        drawTopPointer(cx, cy, outerRimRadius, wheel.flapperAngle);
+      }
+
+      function drawTopPointer(cx, cy, outerRimRadius, flapperAngle) {
+        const pivotY = cy - outerRimRadius - 4;
+        const length = 36;
+        const halfWidth = 14;
+
+        ctx.save();
+        ctx.translate(cx, pivotY);
+        ctx.rotate(flapperAngle);
+
+        ctx.shadowColor = 'rgba(15, 23, 42, 0.28)';
+        ctx.shadowBlur = 8;
+        ctx.shadowOffsetY = 3;
+
+        // Bold Red/Slate Modern Flapper Pointer
+        ctx.beginPath();
+        ctx.moveTo(0, length);
+        ctx.lineTo(-halfWidth, 4);
+        ctx.arc(0, 4, halfWidth, Math.PI, 0, false);
+        ctx.closePath();
+
+        ctx.fillStyle = '#0F172A';
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.stroke();
+
+        // Bright Yellow center pivot dot
+        ctx.beginPath();
+        ctx.arc(0, 5, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#FACC15';
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      function updateWheelPhysics(timestamp) {
+        if (!wheel.lastFrameTime) wheel.lastFrameTime = timestamp;
+        const dt = Math.min((timestamp - wheel.lastFrameTime) / 1000, 0.05);
+        wheel.lastFrameTime = timestamp;
+
+        const active = getActiveOnWheel();
+        const count = active.length;
+
+        if (wheel.isSpinning && count >= 2) {
+          wheel.rotation = (wheel.rotation + wheel.angularVelocity * dt) % (Math.PI * 2);
+
+          // Realistic exponential drag + friction deceleration
+          wheel.angularVelocity *= Math.pow(0.45, dt);
+          wheel.angularVelocity -= 0.44 * dt;
+
+          const sliceAngle = (Math.PI * 2) / count;
+          const pointerAngle = -Math.PI / 2;
+          const relAngle = (((pointerAngle - wheel.rotation) % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+          const currentSliceIndex = Math.floor(relAngle / sliceAngle) % count;
+
+          if (currentSliceIndex !== wheel.lastPegIndex) {
+            wheel.lastPegIndex = currentSliceIndex;
+            wheel.flapperAngle = -0.35;
+            sound.playTick(wheel.angularVelocity / 22);
+          }
+
+          if (wheel.angularVelocity <= 0.04) {
+            wheel.angularVelocity = 0;
+            wheel.isSpinning = false;
+            wheel.flapperAngle = 0;
+            handleWheelStopped(active, currentSliceIndex);
+          }
+        }
+
+        if (Math.abs(wheel.flapperAngle) > 0.001) {
+          wheel.flapperAngle *= Math.pow(0.0015, dt);
+          if (Math.abs(wheel.flapperAngle) < 0.005) {
+            wheel.flapperAngle = 0;
+          }
+        }
+
+        drawWheel();
+        requestAnimationFrame(updateWheelPhysics);
+      }
+
+      /* ------------------------------------------------------------------
+       * 7. SPIN & CELEBRATION FLOW
+       * ------------------------------------------------------------------ */
+      function triggerSpin() {
+        const active = getActiveOnWheel();
+        if (wheel.isSpinning || active.length < 2) return;
+
+        closeLoadModal();
+        dom.newRoundConfirmBar.classList.add('hidden');
+
+        sound.ensureContext();
+        wheel.highlightedWinnerId = null;
+        wheel.pendingWinner = null;
+        wheel.lastPegIndex = -1;
+
+        wheel.angularVelocity = 19 + Math.random() * 9;
+        wheel.isSpinning = true;
+
+        updateControlsState();
+      }
+
+      function handleWheelStopped(activeParticipants, winningIndex) {
+        updateControlsState();
+
+        const winner = activeParticipants[winningIndex];
+        if (!winner) return;
+
+        wheel.highlightedWinnerId = winner.id;
+        wheel.pendingWinner = winner;
+        drawWheel();
+
+        sound.playWinChime();
+        launchPrimaryConfetti();
+
+        setTimeout(() => {
+          openWinnerModal(winner);
+        }, 420);
+      }
+
+      function launchPrimaryConfetti() {
+        if (typeof confetti !== 'function') return;
+
+        const primaryColors = ['#EF4444', '#2563EB', '#FACC15', '#10B981', '#FFFFFF'];
+
+        confetti({
+          particleCount: 80,
+          spread: 72,
+          origin: { y: 0.58 },
+          colors: primaryColors,
+          zIndex: 100,
+        });
+
+        setTimeout(() => {
+          confetti({
+            particleCount: 45,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0.15, y: 0.65 },
+            colors: primaryColors,
+            zIndex: 100,
+          });
+          confetti({
+            particleCount: 45,
+            angle: 120,
+            spread: 55,
+            origin: { x: 0.85, y: 0.65 },
+            colors: primaryColors,
+            zIndex: 100,
+          });
+        }, 200);
+      }
+
+      function openWinnerModal(winner) {
+        const bottleNum = getNextBottleNumber();
+        dom.modalBottleNumber.textContent = bottleNum;
+        dom.modalWinnerName.textContent = winner.name;
+
+        dom.winnerModal.classList.remove('hidden');
+        dom.winnerModal.classList.add('flex');
+      }
+
+      function confirmWinnerAndNextSpin() {
+        const winner = wheel.pendingWinner;
+        if (winner) {
+          const record = state.participants.find((p) => p.id === winner.id);
+          if (record && !record.won) {
+            record.won = true;
+            record.bottleNumber = getNextBottleNumber();
+          }
+        }
+
+        wheel.pendingWinner = null;
+        wheel.highlightedWinnerId = null;
+
+        dom.winnerModal.classList.add('hidden');
+        dom.winnerModal.classList.remove('flex');
+
+        saveState();
+        renderAll();
+      }
+
+      /* ------------------------------------------------------------------
+       * 8. UI RENDERING (ROSTER & WINNERS)
+       * ------------------------------------------------------------------ */
+      function renderAll() {
+        updateAudioUI();
+        updateControlsState();
+        renderRoster();
+        renderWinners();
+        drawWheel();
+      }
+
+      function updateAudioUI() {
+        if (state.muted) {
+          dom.soundOnIcon.classList.add('hidden');
+          dom.soundOffIcon.classList.remove('hidden');
+          dom.muteLabel.textContent = 'Ljud av';
+        } else {
+          dom.soundOnIcon.classList.remove('hidden');
+          dom.soundOffIcon.classList.add('hidden');
+          dom.muteLabel.textContent = 'Ljud på';
+        }
+      }
+
+      function updateControlsState() {
+        const active = getActiveOnWheel();
+        const eligible = getEligiblePool();
+        const winners = getWinnersSorted();
+        const nextBottle = getNextBottleNumber();
+
+        dom.nextBottleNumber.textContent = nextBottle;
+        dom.primarySpinBtnText.textContent = `Snurra för Flaska #${nextBottle}`;
+        dom.rosterCounterPill.textContent = `${active.length} av ${eligible.length} med`;
+        dom.winnersCountBadge.textContent = `${winners.length} st`;
+
+        const canSpin = !wheel.isSpinning && active.length >= 2;
+        dom.centerSpinBtn.disabled = !canSpin;
+        dom.primarySpinBtn.disabled = !canSpin;
+        dom.canvas.style.cursor = canSpin ? 'pointer' : 'default';
+
+        dom.quickResetEmptyBtn.classList.add('hidden');
+
+        if (wheel.isSpinning) {
+          dom.wheelStatusText.textContent = 'Hjulet snurrar...';
+          dom.wheelStatusText.className = 'text-sm font-bold text-brand-blue';
+        } else if (active.length === 0) {
+          if (winners.length > 0) {
+            dom.wheelStatusText.textContent = 'Alla har vunnit! Starta en ny omgång.';
+            dom.wheelStatusText.className = 'text-sm font-semibold text-slate-700';
+            dom.quickResetEmptyBtn.classList.remove('hidden');
+          } else {
+            dom.wheelStatusText.textContent = 'Inga deltagare på hjulet';
+            dom.wheelStatusText.className = 'text-sm font-semibold text-slate-500';
+          }
+        } else if (active.length === 1) {
+          dom.wheelStatusText.textContent = 'Minst 2 personer behövs för att snurra';
+          dom.wheelStatusText.className = 'text-sm font-semibold text-amber-600';
+        } else {
+          dom.wheelStatusText.textContent = `${active.length} deltagare redo på hjulet`;
+          dom.wheelStatusText.className = 'text-sm font-semibold text-slate-700';
+        }
+      }
+
+      function renderRoster() {
+        dom.rosterListContainer.innerHTML = '';
+
+        if (state.participants.length === 0) {
+          dom.rosterListContainer.innerHTML = `
+            <div class="py-8 px-4 text-center text-sm text-slate-500">
+              <p class="font-semibold text-slate-800 mb-1">Listan är tom</p>
+              <p class="text-xs">Lägg till ett förnamn ovan eller klicka på <strong>Ladda lista</strong>.</p>
+            </div>
+          `;
+          return;
+        }
+
+        state.participants.forEach((person) => {
+          const row = document.createElement('div');
+          const isWon = person.won;
+          const isHere = person.present;
+
+          row.className =
+            'group flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl transition ' +
+            (isWon
+              ? 'bg-emerald-50/50 opacity-75'
+              : isHere
+              ? 'hover:bg-slate-50'
+              : 'bg-slate-50/70 opacity-60 hover:opacity-85');
+
+          const label = document.createElement('label');
+          label.className = 'flex items-center gap-3 flex-1 min-w-0 cursor-pointer select-none';
+
+          const checkbox = document.createElement('input');
+          checkbox.type = 'checkbox';
+          checkbox.className = 'modern-checkbox';
+          checkbox.checked = isHere;
+          checkbox.disabled = wheel.isSpinning;
+          checkbox.setAttribute('aria-label', `${person.name} är med`);
+          checkbox.addEventListener('change', () => {
+            if (wheel.isSpinning) return;
+            person.present = checkbox.checked;
+            saveState();
+            renderAll();
+          });
+
+          const nameSpan = document.createElement('span');
+          nameSpan.className =
+            'text-sm font-semibold truncate ' +
+            (isWon
+              ? 'text-slate-800'
+              : isHere
+              ? 'text-slate-900'
+              : 'line-through text-slate-400');
+          nameSpan.textContent = person.name;
+
+          label.appendChild(checkbox);
+          label.appendChild(nameSpan);
+
+          const rightSide = document.createElement('div');
+          rightSide.className = 'flex items-center gap-1.5 flex-shrink-0';
+
+          if (isWon) {
+            const wonBadge = document.createElement('span');
+            wonBadge.className =
+              'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-yellow text-slate-900';
+            wonBadge.textContent = `Flaska #${person.bottleNumber}`;
+            rightSide.appendChild(wonBadge);
+          } else if (!isHere) {
+            const awayBadge = document.createElement('span');
+            awayBadge.className =
+              'px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-200/80 text-slate-600';
+            awayBadge.textContent = 'Borta';
+            rightSide.appendChild(awayBadge);
+          }
+
+          const deleteBtn = document.createElement('button');
+          deleteBtn.type = 'button';
+          deleteBtn.title = `Ta bort ${person.name}`;
+          deleteBtn.setAttribute('aria-label', `Ta bort ${person.name}`);
+          deleteBtn.disabled = wheel.isSpinning;
+          deleteBtn.className =
+            'w-6 h-6 rounded-lg text-slate-400 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 hover:text-brand-red hover:bg-red-50 flex items-center justify-center text-sm font-bold transition cursor-pointer disabled:opacity-30';
+          deleteBtn.textContent = '×';
+          deleteBtn.addEventListener('click', () => {
+            if (wheel.isSpinning) return;
+            state.participants = state.participants.filter((p) => p.id !== person.id);
+            saveState();
+            renderAll();
+          });
+
+          rightSide.appendChild(deleteBtn);
+
+          row.appendChild(label);
+          row.appendChild(rightSide);
+          dom.rosterListContainer.appendChild(row);
+        });
+      }
+
+      function renderWinners() {
+        const winners = getWinnersSorted();
+        dom.winnersListContainer.innerHTML = '';
+
+        if (winners.length === 0) {
+          dom.winnersListContainer.innerHTML = `
+            <div class="py-5 px-3 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/60">
+              <p class="text-xs font-semibold text-slate-600">Inga vinnare ännu</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">
+                Snurra hjulet för att dra första flaskan!
+              </p>
+            </div>
+          `;
+          return;
+        }
+
+        const list = document.createElement('div');
+        list.className = 'space-y-2';
+
+        winners.forEach((winner) => {
+          const item = document.createElement('div');
+          item.className =
+            'flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80';
+
+          const left = document.createElement('div');
+          left.className = 'flex items-center gap-2.5 min-w-0';
+
+          const bottleBadge = document.createElement('span');
+          bottleBadge.className =
+            'px-2.5 py-1 rounded-lg bg-brand-yellow text-slate-900 font-display font-extrabold text-xs flex-shrink-0';
+          bottleBadge.textContent = `Flaska #${winner.bottleNumber}`;
+
+          const nameText = document.createElement('span');
+          nameText.className = 'text-sm font-bold text-slate-900 truncate';
+          nameText.textContent = winner.name;
+
+          left.appendChild(bottleBadge);
+          left.appendChild(nameText);
+
+          const undoBtn = document.createElement('button');
+          undoBtn.type = 'button';
+          undoBtn.disabled = wheel.isSpinning;
+          undoBtn.className =
+            'px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-600 hover:text-brand-blue bg-white hover:bg-blue-50 border border-slate-200 transition cursor-pointer flex-shrink-0 disabled:opacity-40';
+          undoBtn.textContent = 'Ångra';
+          undoBtn.addEventListener('click', () => {
+            if (wheel.isSpinning) return;
+            winner.won = false;
+            winner.bottleNumber = null;
+            // Re-number remaining bottles cleanly
+            getWinnersSorted().forEach((w, idx) => {
+              w.bottleNumber = idx + 1;
+            });
+            saveState();
+            renderAll();
+          });
+
+          item.appendChild(left);
+          item.appendChild(undoBtn);
+          list.appendChild(item);
+        });
+
+        dom.winnersListContainer.appendChild(list);
+      }
+
+      /* ------------------------------------------------------------------
+       * 9. MODAL & ROUND RESET HANDLERS
+       * ------------------------------------------------------------------ */
+      function openLoadModal() {
+        if (wheel.isSpinning) return;
+        dom.loadModalError.classList.add('hidden');
+        dom.bulkNamesTextarea.value = state.participants.map((p) => p.name).join('\n');
+        dom.loadListModal.classList.remove('hidden');
+        dom.loadListModal.classList.add('flex');
+        dom.bulkNamesTextarea.focus();
+      }
+
+      function closeLoadModal() {
+        dom.loadListModal.classList.add('hidden');
+        dom.loadListModal.classList.remove('flex');
+      }
+
+      function parseFirstNamesList(rawText) {
+        return rawText
+          .split(/[\n,;]+/)
+          .map((item) => extractFirstName(item))
+          .filter((name) => name.length > 0);
+      }
+
+      function resetRoundNow() {
+        state.participants.forEach((p) => {
+          p.won = false;
+          p.bottleNumber = null;
+        });
+        wheel.highlightedWinnerId = null;
+        wheel.pendingWinner = null;
+        dom.newRoundConfirmBar.classList.add('hidden');
+        saveState();
+        renderAll();
+      }
+
+      /* ------------------------------------------------------------------
+       * 10. EVENT BINDINGS
+       * ------------------------------------------------------------------ */
+      function bindEvents() {
+        dom.centerSpinBtn.addEventListener('click', triggerSpin);
+        dom.primarySpinBtn.addEventListener('click', triggerSpin);
+        dom.canvas.addEventListener('click', triggerSpin);
+
+        // Spacebar shortcut & Escape handling
+        window.addEventListener('keydown', (e) => {
+          if (e.code === 'Space') {
+            const tag = document.activeElement?.tagName?.toLowerCase();
+            if (tag === 'input' || tag === 'textarea' || tag === 'button') return;
+            if (!dom.winnerModal.classList.contains('hidden')) return;
+            if (!dom.loadListModal.classList.contains('hidden')) return;
+
+            e.preventDefault();
+            triggerSpin();
+          } else if (e.code === 'Escape') {
+            if (!dom.winnerModal.classList.contains('hidden')) {
+              confirmWinnerAndNextSpin();
+            } else if (!dom.loadListModal.classList.contains('hidden')) {
+              closeLoadModal();
+            }
+          }
+        });
+
+        // Sound toggle
+        dom.muteToggleBtn.addEventListener('click', () => {
+          state.muted = !state.muted;
+          sound.setMuted(state.muted);
+          if (!state.muted) {
+            sound.playTick(0.7);
+          }
+          saveState();
+          updateAudioUI();
+        });
+
+        // Header "Ny omgång" button
+        dom.newRoundBtn.addEventListener('click', () => {
+          if (wheel.isSpinning) return;
+          const winners = getWinnersSorted();
+          if (winners.length === 0) {
+            // Also restore everyone as active if no winners yet
+            state.participants.forEach((p) => {
+              p.present = true;
+            });
+            saveState();
+            renderAll();
+            return;
+          }
+          dom.newRoundConfirmBar.classList.toggle('hidden');
+        });
+
+        dom.confirmNewRoundBtn.addEventListener('click', () => {
+          if (wheel.isSpinning) return;
+          resetRoundNow();
+        });
+
+        dom.cancelNewRoundBtn.addEventListener('click', () => {
+          dom.newRoundConfirmBar.classList.add('hidden');
+        });
+
+        dom.quickResetEmptyBtn.addEventListener('click', () => {
+          if (wheel.isSpinning) return;
+          resetRoundNow();
+        });
+
+        // Inline quick add (extracts first name only)
+        dom.quickAddForm.addEventListener('submit', (e) => {
+          e.preventDefault();
+          if (wheel.isSpinning) return;
+
+          const firstName = extractFirstName(dom.quickAddInput.value);
+          if (!firstName) return;
+
+          state.participants.push({
+            id: generateId(),
+            name: firstName,
+            present: true,
+            won: false,
+            bottleNumber: null,
+          });
+
+          dom.quickAddInput.value = '';
+          saveState();
+          renderAll();
+        });
+
+        // Bulk presence toggles
+        dom.markAllHereBtn.addEventListener('click', () => {
+          if (wheel.isSpinning) return;
+          state.participants.forEach((p) => {
+            p.present = true;
+          });
+          saveState();
+          renderAll();
+        });
+
+        dom.markAllAwayBtn.addEventListener('click', () => {
+          if (wheel.isSpinning) return;
+          state.participants.forEach((p) => {
+            p.present = false;
+          });
+          saveState();
+          renderAll();
+        });
+
+        // Winner modal "Nästa snurr"
+        dom.nextSpinBtn.addEventListener('click', confirmWinnerAndNextSpin);
+        dom.winnerModal.addEventListener('click', (e) => {
+          if (e.target === dom.winnerModal) {
+            confirmWinnerAndNextSpin();
+          }
+        });
+
+        // Load list modal ("Ladda namnlista")
+        dom.openLoadModalBtn.addEventListener('click', openLoadModal);
+        dom.closeLoadModalX.addEventListener('click', closeLoadModal);
+        dom.cancelLoadModalBtn.addEventListener('click', closeLoadModal);
+        dom.loadListModal.addEventListener('click', (e) => {
+          if (e.target === dom.loadListModal) {
+            closeLoadModal();
+          }
+        });
+
+        dom.clearTextareaBtn.addEventListener('click', () => {
+          dom.bulkNamesTextarea.value = '';
+          dom.loadModalError.classList.add('hidden');
+          dom.bulkNamesTextarea.focus();
+        });
+
+        dom.saveListBtn.addEventListener('click', () => {
+          const names = parseFirstNamesList(dom.bulkNamesTextarea.value);
+          if (names.length === 0) {
+            dom.loadModalError.classList.remove('hidden');
+            return;
+          }
+
+          state.participants = names.map((name) => ({
+            id: generateId(),
+            name,
+            present: true,
+            won: false,
+            bottleNumber: null,
+          }));
+
+          wheel.highlightedWinnerId = null;
+          wheel.pendingWinner = null;
+          saveState();
+          closeLoadModal();
+          renderAll();
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+      }
+
+      /* ------------------------------------------------------------------
+       * 11. BOOTSTRAP
+       * ------------------------------------------------------------------ */
+      window.addEventListener('load', () => {
+        loadState();
+        bindEvents();
+        resizeCanvas();
+        renderAll();
+        requestAnimationFrame(updateWheelPhysics);
+      });
+    })();
+  </script>
+</body>
+</html>
