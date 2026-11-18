@@ -263,7 +263,7 @@
             aria-label="Vinlotteri snurrhjul"
           ></canvas>
 
-          <!-- Center Hub Button ("SNURRA") -->
+          <!-- Center Hub Button ("SNURRA!") -->
           <button
             id="centerSpinBtn"
             type="button"
@@ -271,7 +271,7 @@
             class="absolute z-10 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-900 hover:bg-slate-800 text-white shadow-hub flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition-all duration-150 disabled:opacity-45 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
             <span class="font-display font-extrabold text-sm sm:text-base tracking-wider text-white">
-              SNURRA
+              SNURRA!
             </span>
           </button>
         </div>
@@ -316,7 +316,7 @@
               id="rosterCounterPill"
               class="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-brand-blue border border-blue-200/80 whitespace-nowrap"
             >
-              12 av 12 med
+              15 av 15 med
             </span>
           </div>
 
@@ -345,10 +345,10 @@
                 class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 transition cursor-pointer"
               >
                 <svg class="w-3.5 h-3.5 text-brand-blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                  <path d="M12 20h9" />
+                  <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
                 </svg>
-                <span>Ladda lista</span>
+                <span>Redigera lista</span>
               </button>
 
               <div class="flex items-center gap-2 text-xs font-semibold">
@@ -447,26 +447,14 @@
           id="winnerHeading"
           class="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight break-words mb-2"
         >
-          Grattis, <span id="modalWinnerName" class="text-brand-blue">Erik</span>!
+          Skål, <span id="modalWinnerName" class="text-brand-blue">Bettan</span>!
         </h3>
 
         <p class="text-sm text-slate-500 mb-6">
           Vinnaren tas automatiskt bort från hjulet inför nästa dragning.
         </p>
 
-        <!-- Primary Action Button: "Nästa snurr" -->
-        <button
-          id="nextSpinBtn"
-          type="button"
-          class="w-full py-3.5 px-6 rounded-2xl bg-brand-blue hover:bg-blue-700 text-white font-display font-extrabold text-base shadow-lg shadow-blue-600/25 transition cursor-pointer active:scale-[0.99]"
-        >
-          Nästa snurr
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ==================== LOAD NAME LIST MODAL ("Ladda namnlista") ==================== -->
+  <!-- ==================== EDIT NAME LIST MODAL ("Redigera lista") ==================== -->
   <div
     id="loadListModal"
     role="dialog"
@@ -477,7 +465,7 @@
     <div class="w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden animate-pop-in">
       <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
         <h3 id="loadModalTitle" class="text-lg font-extrabold text-slate-900">
-          Ladda namnlista
+          Redigera lista
         </h3>
         <button
           id="closeLoadModalX"
@@ -491,13 +479,13 @@
 
       <div class="p-6 space-y-4">
         <p class="text-xs text-slate-500">
-          Klistra in namn (ett per rad eller separerade med kommatecken). Endast förnamn används på hjulet.
+          Redigera eller klistra in namn (ett per rad eller separerade med kommatecken). Endast förnamn används på hjulet.
         </p>
 
         <textarea
           id="bulkNamesTextarea"
-          rows="7"
-          placeholder="Erik&#10;Maja&#10;Johan&#10;Astrid..."
+          rows="8"
+          placeholder="Bettan&#10;Viktor&#10;Anton&#10;Emma..."
           class="w-full p-3.5 text-sm bg-slate-50 border border-slate-300 rounded-2xl focus:outline-none focus:ring-2 focus:ring-brand-blue focus:bg-white transition leading-relaxed"
         ></textarea>
 
@@ -506,13 +494,22 @@
         </p>
 
         <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
-          <button
-            id="clearTextareaBtn"
-            type="button"
-            class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-brand-red hover:bg-red-50 transition cursor-pointer"
-          >
-            Rensa
-          </button>
+          <div class="flex items-center gap-1.5">
+            <button
+              id="restoreDefaultListBtn"
+              type="button"
+              class="px-3 py-2 rounded-xl text-xs font-semibold text-brand-blue hover:bg-blue-50 border border-blue-200/80 transition cursor-pointer"
+            >
+              Återställ standardlista
+            </button>
+            <button
+              id="clearTextareaBtn"
+              type="button"
+              class="px-3 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-brand-red hover:bg-red-50 transition cursor-pointer"
+            >
+              Rensa
+            </button>
+          </div>
 
           <div class="flex items-center gap-2">
             <button
@@ -543,21 +540,24 @@
       /* ------------------------------------------------------------------
        * 1. CONSTANTS & DEFAULT SWEDISH FIRST NAMES
        * ------------------------------------------------------------------ */
-      const STORAGE_KEY = 'vinlotteri_modern_sv_v1';
+      const STORAGE_KEY = 'vinlotteri_roster_v3';
 
       const DEFAULT_FIRST_NAMES = [
-        'Erik',
-        'Maja',
-        'Johan',
-        'Astrid',
-        'Lukas',
-        'Elsa',
-        'Oscar',
-        'Freja',
+        'Bettan',
         'Viktor',
-        'Alva',
-        'Hugo',
-        'Ella',
+        'Anton',
+        'Emma',
+        'Jari',
+        'Lotta',
+        'Jesper',
+        'Kajsa',
+        'Jessica',
+        'Mathias',
+        'Patrik',
+        'Francesca',
+        'Jonna',
+        'Nijin',
+        'Alan',
       ];
 
       // Vibrant Primary Segment Palette with high-contrast text colors
@@ -735,7 +735,7 @@
           console.warn('Kunde inte läsa sparad data:', err);
         }
 
-        // First visit: populate default 12 Swedish first names
+        // First visit: populate default 15 first names
         state.participants = DEFAULT_FIRST_NAMES.map((name) => ({
           id: generateId(),
           name,
@@ -813,6 +813,7 @@
         closeLoadModalX: document.getElementById('closeLoadModalX'),
         bulkNamesTextarea: document.getElementById('bulkNamesTextarea'),
         loadModalError: document.getElementById('loadModalError'),
+        restoreDefaultListBtn: document.getElementById('restoreDefaultListBtn'),
         clearTextareaBtn: document.getElementById('clearTextareaBtn'),
         cancelLoadModalBtn: document.getElementById('cancelLoadModalBtn'),
         saveListBtn: document.getElementById('saveListBtn'),
@@ -1245,7 +1246,7 @@
           dom.rosterListContainer.innerHTML = `
             <div class="py-8 px-4 text-center text-sm text-slate-500">
               <p class="font-semibold text-slate-800 mb-1">Listan är tom</p>
-              <p class="text-xs">Lägg till ett förnamn ovan eller klicka på <strong>Ladda lista</strong>.</p>
+              <p class="text-xs">Lägg till ett förnamn ovan eller klicka på <strong>Redigera lista</strong>.</p>
             </div>
           `;
           return;
@@ -1264,8 +1265,8 @@
               ? 'hover:bg-slate-50'
               : 'bg-slate-50/70 opacity-60 hover:opacity-85');
 
-          const label = document.createElement('label');
-          label.className = 'flex items-center gap-3 flex-1 min-w-0 cursor-pointer select-none';
+          const leftWrap = document.createElement('div');
+          leftWrap.className = 'flex items-center gap-3 flex-1 min-w-0';
 
           const checkbox = document.createElement('input');
           checkbox.type = 'checkbox';
@@ -1281,8 +1282,9 @@
           });
 
           const nameSpan = document.createElement('span');
+          nameSpan.title = 'Dubbelklicka för att byta namn';
           nameSpan.className =
-            'text-sm font-semibold truncate ' +
+            'text-sm font-semibold truncate cursor-pointer select-none ' +
             (isWon
               ? 'text-slate-800'
               : isHere
@@ -1290,26 +1292,108 @@
               : 'line-through text-slate-400');
           nameSpan.textContent = person.name;
 
-          label.appendChild(checkbox);
-          label.appendChild(nameSpan);
+          // Toggle checkbox on single click, or start inline rename on double click
+          let clickTimer = null;
+          nameSpan.addEventListener('click', () => {
+            if (wheel.isSpinning) return;
+            if (clickTimer) return;
+            clickTimer = setTimeout(() => {
+              clickTimer = null;
+              person.present = !person.present;
+              saveState();
+              renderAll();
+            }, 210);
+          });
+
+          const startInlineEdit = () => {
+            if (wheel.isSpinning) return;
+            if (clickTimer) {
+              clearTimeout(clickTimer);
+              clickTimer = null;
+            }
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.value = person.name;
+            input.maxLength = 30;
+            input.className =
+              'w-full min-w-0 px-2 py-0.5 text-sm font-semibold text-slate-900 bg-white border border-brand-blue rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-blue/30';
+
+            let finished = false;
+            const commitEdit = () => {
+              if (finished) return;
+              finished = true;
+              const updated = extractFirstName(input.value);
+              if (updated) {
+                person.name = updated;
+                saveState();
+              }
+              renderAll();
+            };
+
+            const cancelEdit = () => {
+              if (finished) return;
+              finished = true;
+              renderAll();
+            };
+
+            input.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                commitEdit();
+              } else if (e.key === 'Escape') {
+                e.preventDefault();
+                cancelEdit();
+              }
+            });
+            input.addEventListener('blur', commitEdit);
+
+            leftWrap.replaceChild(input, nameSpan);
+            input.focus();
+            input.select();
+          };
+
+          nameSpan.addEventListener('dblclick', (e) => {
+            e.preventDefault();
+            startInlineEdit();
+          });
+
+          leftWrap.appendChild(checkbox);
+          leftWrap.appendChild(nameSpan);
 
           const rightSide = document.createElement('div');
-          rightSide.className = 'flex items-center gap-1.5 flex-shrink-0';
+          rightSide.className = 'flex items-center gap-1 flex-shrink-0';
 
           if (isWon) {
             const wonBadge = document.createElement('span');
             wonBadge.className =
-              'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-yellow text-slate-900';
+              'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-brand-yellow text-slate-900 mr-0.5';
             wonBadge.textContent = `Flaska #${person.bottleNumber}`;
             rightSide.appendChild(wonBadge);
           } else if (!isHere) {
             const awayBadge = document.createElement('span');
             awayBadge.className =
-              'px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-200/80 text-slate-600';
+              'px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-200/80 text-slate-600 mr-0.5';
             awayBadge.textContent = 'Borta';
             rightSide.appendChild(awayBadge);
           }
 
+          // Inline Edit Pencil Button
+          const editBtn = document.createElement('button');
+          editBtn.type = 'button';
+          editBtn.title = `Ändra namn på ${person.name}`;
+          editBtn.setAttribute('aria-label', `Ändra namn på ${person.name}`);
+          editBtn.disabled = wheel.isSpinning;
+          editBtn.className =
+            'w-6 h-6 rounded-lg text-slate-400 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 hover:text-brand-blue hover:bg-blue-50 flex items-center justify-center transition cursor-pointer disabled:opacity-30';
+          editBtn.innerHTML = `
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 20h9" />
+              <path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z" />
+            </svg>
+          `;
+          editBtn.addEventListener('click', startInlineEdit);
+
+          // Delete Participant Button
           const deleteBtn = document.createElement('button');
           deleteBtn.type = 'button';
           deleteBtn.title = `Ta bort ${person.name}`;
@@ -1325,9 +1409,10 @@
             renderAll();
           });
 
+          rightSide.appendChild(editBtn);
           rightSide.appendChild(deleteBtn);
 
-          row.appendChild(label);
+          row.appendChild(leftWrap);
           row.appendChild(rightSide);
           dom.rosterListContainer.appendChild(row);
         });
@@ -1554,10 +1639,10 @@
         dom.openLoadModalBtn.addEventListener('click', openLoadModal);
         dom.closeLoadModalX.addEventListener('click', closeLoadModal);
         dom.cancelLoadModalBtn.addEventListener('click', closeLoadModal);
-        dom.loadListModal.addEventListener('click', (e) => {
-          if (e.target === dom.loadListModal) {
-            closeLoadModal();
-          }
+        dom.restoreDefaultListBtn.addEventListener('click', () => {
+          dom.bulkNamesTextarea.value = DEFAULT_FIRST_NAMES.join('\n');
+          dom.loadModalError.classList.add('hidden');
+          dom.bulkNamesTextarea.focus();
         });
 
         dom.clearTextareaBtn.addEventListener('click', () => {
